@@ -11,13 +11,13 @@
 #WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #See the License for the specific language governing permissions and
 #limitations under the License.
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, make_response
 from flask_mail import Mail, Message
 from Collagens import get_cols, label_cols, cleanup_files
 from waitress import serve
-from werkzeug.exceptions import HTTPException, BadRequest, NotFound
+from werkzeug.exceptions import HTTPException, BadRequest, NotFound, Forbidden
 from dotenv import load_dotenv
-import os, uuid, time, shutil
+import os, uuid, time, shutil, secrets
 
 load_dotenv()
 
@@ -37,6 +37,8 @@ def documentation():
 def citation():
     return render_template('citation.html')
 
+user_db = {}
+
 #Route for file inputs which runs all the functions given the inputs and then redirects to a different link to show the files depending on user id
 @app.route("/collagens/file_input", methods=["POST"])
 def collagens_file():
@@ -45,6 +47,9 @@ def collagens_file():
     request_id = str(uuid.uuid4())
     workdir = os.path.join("sessions", request_id)
     os.makedirs(workdir)
+    
+    owner_token = secrets.token_hex(32)
+    user_db[request_id] = owner_token
     
     #requesting input file, creating individual file within current workdir within sessions and the assigned random user id
     cols_file = request.files['fasta_seqs']
@@ -65,7 +70,11 @@ def collagens_file():
     get_cols(input_fasta, col_txt, min_col)
     label_cols(col_txt, col_html, col_table, max_inter)
     
-    return redirect(url_for("results", user_id=request_id))
+    response = make_response(redirect(url_for("results", user_id=request_id)))
+    
+    response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
+    
+    return response
 
 
 #Route for file inputs which runs all the functions given the inputs and then redirects to a different link to show the files depending on user id
@@ -76,6 +85,9 @@ def collagens_txt():
     request_id = str(uuid.uuid4())
     workdir = os.path.join("sessions", request_id)
     os.makedirs(workdir)
+    
+    owner_token = secrets.token_hex(32)
+    user_db[request_id] = owner_token
     
     #requesting input text and validating it
     cols_text_input = request.form['fasta_text']
@@ -99,14 +111,25 @@ def collagens_txt():
     
     get_cols(input_fasta, col_txt, min_col)
     label_cols(col_txt, col_html, col_table, max_inter)
-        
-    return redirect(url_for("results", user_id=request_id))
+    
+    response = make_response(redirect(url_for("results", user_id=request_id)))
+    
+    response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600)
+    
+    return response
 
 
 
 #setting up user isolated routes per user id so that the results page url isn't the same for 2 people
 @app.route("/results/<user_id>", methods=["GET"])
 def results(user_id):
+    
+    expected_cookie = user_db.get(user_id)
+    if not expected_cookie:
+        raise NotFound(description="The session you are trying to access has been removed. Please run your query again.") #Check for user data on system
+    user_cookie = request.cookies.get('viewer_device_id')
+    if user_cookie != expected_cookie: #compare user cookie token to stored token
+        raise Forbidden(description="You do not have permission to view these results. Please use the browser used to submit the query.") 
     
     #getting the working directory and files for counting
     workdir = os.path.join("sessions", user_id)
@@ -142,6 +165,15 @@ def results(user_id):
 #setting up a route for each user to view and download their files
 @app.route("/sessions/<user_id>/<filename>", methods=["GET"])
 def sessions(user_id, filename):
+    
+    expected_cookie = user_db.get(user_id)
+    if not expected_cookie:
+        raise NotFound(description="The session you are trying to access has been removed. Please run your query again.") #Check for user data on system
+    
+    user_cookie = request.cookies.get('viewer_device_id')
+    if user_cookie != expected_cookie: #compare user cookie token to stored token
+        raise Forbidden(description="You do not have permission to view these results. Please use the browser used to submit the query.")
+    
     return send_from_directory(os.path.join("sessions", user_id), filename)
 
 
