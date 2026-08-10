@@ -24,6 +24,7 @@ limitations under the License.
 </head>
 
 <body>
+
     <header>
         <div class="header_brand">
             <h1 class="wiki">Wiki</h1>
@@ -43,33 +44,31 @@ limitations under the License.
     <main>
         
         <div class="intro">
-            <h1 class="page_header">Automatic collagen domain detector</h1>
+            <h1 class="page_header">Collagen and CLP Classifier</h1>
             <p class="intro">
-                Wiki Collagen is a tool which, given fasta formatted protein sequences, will identify collagen domain containing proteins 
-                and highlight their collagen domains along with any interruptions.<br />
+                CollagenAI is a tool which, given fasta formatted protein sequences, will classify the sequences into one of 11 classes (see Documentation) 
+                and return the classisfication and confidence score.<br />
             </p>
         </div>
         
         <hr>
         
-        <form action="/collagens/file_input" method="POST" enctype="multipart/form-data" onsubmit="replace_msg_file()">
+        <form action="/CollagenAI/file_input" method="POST" enctype="multipart/form-data" onsubmit="replace_msg_file()">
             <div class="container">           
                 <h2 class="container_header_file_input">File Input</h2>   
                 <label for="fasta_File">Fasta file input:</label>
                 <input type="file" name="fasta_seqs" accept=".fasta,.fa,.faa,.txt" id="fasta_File" required>
                         
-                <label for="trip_len1">Minimum collagen domain triplet length (in triplets):</label>
-                <input type="number" name="col_len_min" title="Default = 10 triplets (ie. 30 amino acids)" value="10" id="trip_len1" required>                            
-                <label for="Max_GNG1">Maximum GNG interruption length:</label>
-                <input type="number" name="interruption_max" title="Default = 12 amino acids" value="12" id="Max_GNG1" required>
+                <label for="confidence_threshold1">Minimum confidence threshold (%): - maybe adjust the default value and remove this</label>
+                <input type="number" name="confidence_threshold" title="Default = 50%" value="50" id="confidence_threshold1" required>                            
                         
-                <button id="button_file" type="submit">Find collagen domains</button>
+                <button id="button_file" type="submit">Classify Sequences</button>
             </div>
         </form>
         
         <hr>
         
-        <form action="/collagens/text_input" method="POST" onsubmit="replace_msg_text()">
+        <form action="/CollagenAI/text_input" method="POST" onsubmit="replace_msg_text()">
             <div class="container">
                 <h2 class="container_header">Text Input</h2>
                 <p class="text_input">For large fasta files, please use the file input <br/> (450,000 Character limit)</p>
@@ -77,13 +76,10 @@ limitations under the License.
                 <label for="fasta_paste">Fasta sequences paste input:</label>
                 <textarea name="fasta_text" maxlength="450000" title="Fasta sequences input" placeholder="Paste fasta sequences here!" id="fasta_paste" required></textarea>
                 
-                <label for="trip_len2">Minimum collagen domain triplet length (in triplets):</label>
-                <input type="number" name="col_len_min" title="Default = 10 triplets (ie. 30 amino acids)" value="10" id="trip_len2" required>
+                <label for="confidence_threshold2">Minimum confidence threshold (%):</label>
+                <input type="number" name="confidence_threshold" title="Default = 50%" value="50" id="confidence_threshold2" required>
                             
-                <label for="Max_GNG2">Maximum GNG interruption length:</label>
-                <input type="number" name="interruption_max" title="Default = 12 amino acids" value="12" id="Max_GNG2" required>
-                            
-                <button id="button_text" type="submit">Find collagen domains</button>
+                <button id="button_text" type="submit">Classify Sequences</button>
             </div>
         </form>
         <p class ="intro"><br />Please separate fasta headers and sequences with new line characters.<br /></p>

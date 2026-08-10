@@ -14,6 +14,7 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for, make_response
 from flask_mail import Mail, Message
 from Collagens import get_cols, label_cols, cleanup_files
+from CollagenAI import CollagenFamilyClassifier, CONFIG, FAMILIES, LABEL2ID, ID2LABEL, load_model, standard_predict, predict_long_sequence, get_seqs, make_prediction
 from waitress import serve
 from werkzeug.exceptions import HTTPException, BadRequest, NotFound, Forbidden
 from dotenv import load_dotenv
@@ -28,6 +29,10 @@ cleanup_files("sessions", 3600)
 @app.route('/home')
 def home():
     return render_template('home.html')
+
+@app.route('/CollagenAI')
+def CollagenAI():
+    return render_template('CollagenAI.html')
 
 @app.route('/documentation')
 def documentation():
@@ -153,13 +158,7 @@ def results(user_id):
             if line.startswith(">"):
                 col_num += 1
     
-    return render_template(
-        "collagens.html",
-        seqs=seq_num,
-        collagen_num=col_num,
-        user_id=user_id,
-        )
-
+    return render_template("collagens.html", seqs=seq_num, collagen_num=col_num, user_id=user_id,)
 
 
 #setting up a route for each user to view and download their files
@@ -176,7 +175,110 @@ def sessions(user_id, filename):
     
     return send_from_directory(os.path.join("sessions", user_id), filename)
 
+# Route for CollagenAI file input
+@app.route("/CollagenAI/file_input", methods=["POST"])
+def CollagenAI_file():
 
+    #creating random user id and creating a working directory within the sessions folder labeled as the request_id (user id)  
+    request_id = str(uuid.uuid4())
+    workdir = os.path.join("sessions", request_id)
+    os.makedirs(workdir)
+    
+    owner_token = secrets.token_hex(32)
+    user_db[request_id] = owner_token
+    
+    #requesting input file, creating individual file within current workdir within sessions and the assigned random user id
+    cols_file = request.files['fasta_seqs']
+    input_fasta = os.path.join(workdir, "input.fasta")
+    cols_file.save(input_fasta) #save function effienctly saves the file by loading it into the other file in chunks of 16Kb
+    
+    #getting numerical input and handling input errors:
+    try:
+        confidence_threshold = int(request.form['confidence_threshold'])
+    except(ValueError): 
+        raise BadRequest(description="Incorrect input. Please use positive integers as the input for the confidence threshold.")
+    except(KeyError): 
+        raise BadRequest(description="Please provide input for the minimum confidence threshold.")
+    
+    colAI_txt = os.path.join(workdir, "colAI.txt")
+    classification_txt = os.path.join(workdir, "Classifications.txt")
+    window_size = CONFIG['window_size']
+    model, tokenizer, device = load_model()
+    
+    get_seqs(input_fasta, colAI_txt)
+    make_prediction(colAI_txt, classification_txt, confidence_threshold, model, tokenizer, device, window_size)
+    response = make_response(redirect(url_for("resultsAI", user_id=request_id)))
+    
+    response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
+    
+    return response
+
+# Route for CollagenAI file input
+@app.route("/CollagenAI/text_input", methods=["POST"])
+def CollagenAI_text():
+
+    #creating random user id and creating a working directory within the sessions folder labeled as the request_id (user id)  
+    request_id = str(uuid.uuid4())
+    workdir = os.path.join("sessions", request_id)
+    os.makedirs(workdir)
+    
+    owner_token = secrets.token_hex(32)
+    user_db[request_id] = owner_token
+    
+    #requesting input file, creating individual file within current workdir within sessions and the assigned random user id
+    
+    #requesting input text and validating it
+    cols_text_input = request.form['fasta_text']
+    input_fasta = os.path.join(workdir, "input.fasta")
+    with open(input_fasta, 'w', encoding="utf-8") as f:
+        f.write(cols_text_input)
+        
+    #getting numerical input and handling input errors:
+    try:
+        confidence_threshold = int(request.form['confidence_threshold'])
+    except(ValueError): 
+        raise BadRequest(description="Incorrect input. Please use positive integers as the input for the confidence threshold.")
+    except(KeyError): 
+        raise BadRequest(description="Please provide input for the minimum confidence threshold.")
+    
+    colAI_txt = os.path.join(workdir, "colAI.txt")
+    classification_txt = os.path.join(workdir, "Classifications.txt")
+    window_size = CONFIG['window_size']
+    model, tokenizer, device = load_model()
+    
+    get_seqs(input_fasta, colAI_txt)
+    make_prediction(colAI_txt, classification_txt, confidence_threshold, model, tokenizer, device, window_size)
+    response = make_response(redirect(url_for("resultsAI", user_id=request_id)))
+    
+    response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
+    
+    return response
+
+@app.route("/resultsAI/<user_id>", methods=["GET"])
+def resultsAI(user_id):
+    
+    expected_cookie = user_db.get(user_id)
+    if not expected_cookie:
+        raise NotFound(description="The session you are trying to access has been removed. Please run your query again.") #Check for user data on system
+    user_cookie = request.cookies.get('viewer_device_id')
+    if user_cookie != expected_cookie: #compare user cookie token to stored token
+        raise Forbidden(description="You do not have permission to view these results. Please use the browser used to submit the query.") 
+    
+    #getting the working directory and files for counting
+    workdir = os.path.join("sessions", user_id)
+    colAI_txt = os.path.join(workdir, "Classifications.txt")
+    
+    #counting sequences in origninal fasta file and verifying that the file still exists
+    try:
+        with open(colAI_txt, 'r', encoding='utf-8') as f:
+            seq_num = 0
+            for line in f:
+                if line.startswith(">"):
+                    seq_num += 1
+    except:
+            raise NotFound(description="The session you are trying to access has been removed. Please run your query again.")
+    
+    return render_template("CollagenAI_results.html", user_id=user_id, seqs=seq_num)
 
 #Error handling
 @app.errorhandler(HTTPException)
@@ -239,7 +341,7 @@ def contact():
 
 if __name__ == '__main__':
 # Run Flask development server
-	#app.run(debug=True, host='0.0.0.0', port=5000)
+	app.run(debug=True, host='0.0.0.0', port=5000)
 
 # Run Flask production server with Waitress
-    serve(app, host='0.0.0.0', port=5000, threads=9, max_request_body_size=1073741824)
+    #serve(app, host='0.0.0.0', port=5000, threads=9, max_request_body_size=1073741824)

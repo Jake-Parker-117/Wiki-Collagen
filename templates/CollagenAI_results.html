@@ -42,19 +42,21 @@ limitations under the License.
     </header>
 
     <main>
-        <h1 class="page_header">I'm Sorry</h1>
-        <div class="intro">
-            <p class="error">
-                Something went wrong. Please try again.<br /><br />
-                Error: {{ e_title }}<br />
-                Error Message: {{ e_msg }}<br /><br />
+        <h1 class="page_header"> Results </h1>
+        <p class="intro">
+            Number of sequences uploaded: {{ seqs }}<br />
+        </p>
+        <div class="container">
+            <h2>View and Download Files</h2>
+            <ol class="results">
+                <li class="results"><a href="{{ url_for('sessions', user_id=user_id, filename='Classifications.txt') }}" target="_blank">View Classifications</a></li>
+                <li class="results"><a href="{{ url_for('sessions', user_id=user_id, filename='Classifications.txt') }}" download="Classifications.txt">Download Classifications</a></li>
+            </ol>
+        </div>
+            <p class="intro">
+                You will lose access to these files within 1 hour of submitting.<br />
+                Please download any files you wish to keep.<br />
             </p>
-        <div>
-
-        <form action="/">
-            <button type="submit">Return to home page</button>
-        </form>
-        
     </main>
 
     <footer>Wiki Collagen by Dr. Jordi Bella and Jacob Parker</footer>
