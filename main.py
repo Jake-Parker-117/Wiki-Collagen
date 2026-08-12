@@ -18,7 +18,8 @@ from CollagenAI import CollagenFamilyClassifier, CONFIG, FAMILIES, LABEL2ID, ID2
 from waitress import serve
 from werkzeug.exceptions import HTTPException, BadRequest, NotFound, Forbidden
 from dotenv import load_dotenv
-import os, uuid, time, shutil, secrets
+import os, uuid, time, shutil, secrets, queue, threading, gc
+import torch
 
 load_dotenv()
 
@@ -175,6 +176,48 @@ def sessions(user_id, filename):
     
     return send_from_directory(os.path.join("sessions", user_id), filename)
 
+# Creating Queue system for AI due to GPU constraints
+request_queue = queue.Queue()
+results_registry = {}
+registry_lock = threading.Lock()
+
+#Global objects for model instance:
+model = None
+tokenizer = None
+device = None
+
+# Creating a worker loop to load model onto GPU and process each fasta file one at a time
+def gpu_worker_loop():
+    """
+    Background GPU worker
+    """
+    
+    global model, tokenizer, device
+    
+    window_size = CONFIG['window_size']
+    model, tokenizer, device = load_model() # loads model on startup
+    
+    while True:
+        task_id, input_fasta, colAI_txt, classification_txt, confidence_threshold = request_queue.get() # pulls all info for request from the functions below
+        
+        try:
+            get_seqs(input_fasta, colAI_txt)
+            make_prediction(colAI_txt, classification_txt, confidence_threshold, model, tokenizer, device, window_size)
+
+            with registry_lock:
+                results_registry[task_id] = {"status": "success"}
+
+        except Exception as e:
+            with registry_lock:
+                results_registry[task_id] = {"status": "error", "message": str(e)}
+        
+        finally:
+            if device and device.type == 'cuda':
+                gc.collect()
+                torch.cuda.empty_cache()
+        
+        request_queue.task_done()
+
 # Route for CollagenAI file input
 @app.route("/CollagenAI/file_input", methods=["POST"])
 def CollagenAI_file():
@@ -202,15 +245,30 @@ def CollagenAI_file():
     
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")
-    window_size = CONFIG['window_size']
-    model, tokenizer, device = load_model()
     
-    get_seqs(input_fasta, colAI_txt)
-    make_prediction(colAI_txt, classification_txt, confidence_threshold, model, tokenizer, device, window_size)
+    #Adding current request to queue with all input and output objects
+    request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
+    # Creating a timeout counter
+    timeout = 300
+    start_time = time.time()
+    
+    # Implementing Synchronous waiting pool to stop users from having requests handled simultaneously
+    while True:
+        with registry_lock:
+            if request_id in results_registry:
+                result = results_registry.pop(request_id)
+                if result["status"] == "success":
+                    break
+                else:
+                    raise BadRequest(description=f"Prediction failed: {result['message']}") # Show error message if prediction failed
+        if time.time() - start_time > timeout: # Timeout the request if its taking too long
+            raise BadRequest(description="The server queue took too long to process this FASTA file. Please try again or a smaller batch.")
+    
+        time.sleep(1.5) # Stops CPU from constantly being used to check if its finished yet
+    
     response = make_response(redirect(url_for("resultsAI", user_id=request_id)))
-    
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
-    
+        
     return response
 
 # Route for CollagenAI file input
@@ -243,15 +301,30 @@ def CollagenAI_text():
     
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")
-    window_size = CONFIG['window_size']
-    model, tokenizer, device = load_model()
     
-    get_seqs(input_fasta, colAI_txt)
-    make_prediction(colAI_txt, classification_txt, confidence_threshold, model, tokenizer, device, window_size)
+    #Adding current request to queue with all input and output objects
+    request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
+    # Creating a timeout counter
+    timeout = 300
+    start_time = time.time()
+    
+    # Implementing Synchronous waiting pool to stop users from having requests handled simultaneously
+    while True:
+        with registry_lock:
+            if request_id in results_registry:
+                result = results_registry.pop(request_id)
+                if result["status"] == "success":
+                    break
+                else:
+                    raise BadRequest(description=f"Prediction failed: {result['message']}") # Show error message if prediction failed
+        if time.time() - start_time > timeout: # Timeout the request if its taking too long
+            raise BadRequest(description="The server queue took too long to process this FASTA file. Please try again or a smaller batch.")
+        
+        time.sleep(1.5) # Stops CPU from constantly being used to check if its finished yet
+    
     response = make_response(redirect(url_for("resultsAI", user_id=request_id)))
-    
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
-    
+        
     return response
 
 @app.route("/resultsAI/<user_id>", methods=["GET"])
@@ -340,8 +413,12 @@ def contact():
 
 
 if __name__ == '__main__':
-# Run Flask development server
-	app.run(debug=True, host='0.0.0.0', port=5000)
+    # Launching worker thread:
+    worker_thread = threading.Thread(target=gpu_worker_loop, daemon=True)
+    worker_thread.start()
+    
+    # Run Flask development server
+    app.run(debug=True, host='0.0.0.0', port=5000)
 
-# Run Flask production server with Waitress
+    # Run Flask production server with Waitress
     #serve(app, host='0.0.0.0', port=5000, threads=9, max_request_body_size=1073741824)

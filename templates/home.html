@@ -31,7 +31,7 @@ limitations under the License.
         </div>
         <nav>    
             <ul class="nav_list">
-                <li><a href="{{ url_for('home') }}">Collagen Detector</a></li>|
+                <li><a aria-current="page">Collagen Detector</a></li>|
                 <li><a href="{{ url_for('CollagenAI') }}">CollagenAI</a></li>|
                 <li><a href="{{ url_for('documentation') }}">Documentation</a></li>|
                 <li><a href="{{ url_for('citation') }}">Citation</a></li>|
@@ -45,7 +45,7 @@ limitations under the License.
         <div class="intro">
             <h1 class="page_header">Automatic collagen domain detector</h1>
             <p class="intro">
-                Wiki Collagen is a tool which, given fasta formatted protein sequences, will identify collagen domain containing proteins 
+                The Collagen Detector is a tool which, given fasta formatted protein sequences, will identify collagen domain containing proteins 
                 and highlight their collagen domains along with any interruptions.<br />
             </p>
         </div>
@@ -63,7 +63,10 @@ limitations under the License.
                 <label for="Max_GNG1">Maximum GNG interruption length:</label>
                 <input type="number" name="interruption_max" title="Default = 12 amino acids" value="12" id="Max_GNG1" required>
                         
-                <button id="button_file" type="submit">Find collagen domains</button>
+                <button id="button_file" type="submit">Find collagen domains</button><br/>
+                <div id="progress_file" class="progress-container">
+                    <div id="bar_file" class="progress-bar">0%</div>
+                </div>
             </div>
         </form>
         
@@ -83,7 +86,10 @@ limitations under the License.
                 <label for="Max_GNG2">Maximum GNG interruption length:</label>
                 <input type="number" name="interruption_max" title="Default = 12 amino acids" value="12" id="Max_GNG2" required>
                             
-                <button id="button_text" type="submit">Find collagen domains</button>
+                <button id="button_text" type="submit">Find collagen domains</button></br>
+                <div id="progress_text" class="progress-container">
+                    <div id="bar_text" class="progress-bar">0%</div>
+                </div>
             </div>
         </form>
         <p class ="intro"><br />Please separate fasta headers and sequences with new line characters.<br /></p>
@@ -95,18 +101,58 @@ limitations under the License.
     <script>
     function replace_msg_file() {
         var x = document.getElementById("button_file");
-        x.disabled = true
+        x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
+
+        var progressContainer = document.getElementById("progress_file");
+        var progressBar = document.getElementById("bar_file");
+
+        if (progressContainer && progressBar) {
+            progressContainer.style.display = "block";
+
+            // Progress bar animation
+            let width = 1;
+            const intervalId = setInterval(() => {
+                if (width >= 95) { 
+                    clearInterval(intervalId);
+                } else {
+                    width++;
+                    progressBar.style.width = width + "%";
+                    progressBar.innerHTML = width + "%";
+                }
+            }, 25); // Speed Control
+        }
     }
     </script>
+
     <script>
     function replace_msg_text() {
         var x = document.getElementById("button_text");
-        x.disabled = true
+        x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
+
+        var progressContainer = document.getElementById("progress_text");
+        var progressBar = document.getElementById("bar_text");
+
+        if (progressContainer && progressBar) {
+            progressContainer.style.display = "block";
+
+            // Progress bar animation
+            let width = 1;
+            const intervalId = setInterval(() => {
+                if (width >= 95) { 
+                    clearInterval(intervalId);
+                } else {
+                    width++;
+                    progressBar.style.width = width + "%";
+                    progressBar.innerHTML = width + "%";
+                }
+            }, 25); // Speed Control
+        }
     }
     </script>
+
 </body>
 </html>

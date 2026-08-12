@@ -33,7 +33,7 @@ limitations under the License.
         <nav>    
             <ul class="nav_list">
                 <li><a href="{{ url_for('home') }}">Collagen Detector</a></li>|
-                <li><a href="{{ url_for('CollagenAI') }}">CollagenAI</a></li>|
+                <li><a aria-current="page">CollagenAI</a></li>|
                 <li><a href="{{ url_for('documentation') }}">Documentation</a></li>|
                 <li><a href="{{ url_for('citation') }}">Citation</a></li>|
                 <li><a href="{{ url_for('contact') }}">Contact</a></li>
@@ -44,10 +44,10 @@ limitations under the License.
     <main>
         
         <div class="intro">
-            <h1 class="page_header">Collagen and CLP Classifier</h1>
+            <h1 class="page_header">CollagenAI: The Collagen and CLP Classifier</h1>
             <p class="intro">
                 CollagenAI is a tool which, given fasta formatted protein sequences, will classify the sequences into one of 11 classes (see Documentation) 
-                and return the classisfication and confidence score.<br />
+                and return the predicted classisfication and confidence score.<br />
             </p>
         </div>
         
@@ -59,10 +59,13 @@ limitations under the License.
                 <label for="fasta_File">Fasta file input:</label>
                 <input type="file" name="fasta_seqs" accept=".fasta,.fa,.faa,.txt" id="fasta_File" required>
                         
-                <label for="confidence_threshold1">Minimum confidence threshold (%): - maybe adjust the default value and remove this</label>
-                <input type="number" name="confidence_threshold" title="Default = 50%" value="50" id="confidence_threshold1" required>                            
-                        
-                <button id="button_file" type="submit">Classify Sequences</button>
+                <label for="confidence_threshold1">Minimum confidence threshold (%):</label>
+                <input type="number" name="confidence_threshold" title="Default = 80%" value="80" id="confidence_threshold1" required>                            
+                
+                <button id="button_file" type="submit">Classify Sequences</button><br/>
+                <div id="progress_file" class="progress-container">
+                    <div id="bar_file" class="progress-bar">0%</div>
+                </div>
             </div>
         </form>
         
@@ -77,12 +80,15 @@ limitations under the License.
                 <textarea name="fasta_text" maxlength="450000" title="Fasta sequences input" placeholder="Paste fasta sequences here!" id="fasta_paste" required></textarea>
                 
                 <label for="confidence_threshold2">Minimum confidence threshold (%):</label>
-                <input type="number" name="confidence_threshold" title="Default = 50%" value="50" id="confidence_threshold2" required>
+                <input type="number" name="confidence_threshold" title="Default = 80%" value="80" id="confidence_threshold2" required>
                             
-                <button id="button_text" type="submit">Classify Sequences</button>
+                <button id="button_text" type="submit">Classify Sequences</button><br/>
+                <div id="progress_text" class="progress-container">
+                    <div id="bar_text" class="progress-bar">0%</div>
+                </div>
             </div>
         </form>
-        <p class ="intro"><br />Please separate fasta headers and sequences with new line characters.<br /></p>
+        <p class ="intro"><br/>Please separate fasta headers and sequences with new line characters.<br /></p>
     
     </main>
     
@@ -90,18 +96,65 @@ limitations under the License.
 
     <script>
     function replace_msg_file() {
+        var fileInput = document.getElementById("fasta_File");
+        var file = fileInput.files[0];
+        var file_size_kbs = file.size / 1024;
+        var timer_file = file_size_kbs*7
         var x = document.getElementById("button_file");
-        x.disabled = true
+        x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
+
+        var progressContainer = document.getElementById("progress_file");
+        var progressBar = document.getElementById("bar_file");
+
+        if (progressContainer && progressBar) {
+            progressContainer.style.display = "block";
+
+            // Progress bar animation
+            let width = 1;
+            const intervalId = setInterval(() => {
+                if (width >= 95) { 
+                    clearInterval(intervalId);
+                } else {
+                    width++;
+                    progressBar.style.width = width + "%";
+                    progressBar.innerHTML = width + "%";
+                }
+            }, timer_file); // Speed Control
+        }
     }
     </script>
+
     <script>
     function replace_msg_text() {
         var x = document.getElementById("button_text");
-        x.disabled = true
+        var textInput = document.getElementById("fasta_paste");
+        var totalCharacters = textInput.value.length;
+        var textInput_size = totalCharacters/1024
+        var timer_text = textInput_size*6
+        x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
+
+        var progressContainer = document.getElementById("progress_text");
+        var progressBar = document.getElementById("bar_text");
+
+        if (progressContainer && progressBar) {
+            progressContainer.style.display = "block";
+
+            // Progress bar animation
+            let width = 1;
+            const intervalId = setInterval(() => {
+                if (width >= 95) { 
+                    clearInterval(intervalId);
+                } else {
+                    width++;
+                    progressBar.style.width = width + "%";
+                    progressBar.innerHTML = width + "%";
+                }
+            }, timer_text); // Speed Control
+        }
     }
     </script>
 </body>

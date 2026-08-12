@@ -217,6 +217,18 @@ hr{
     
 }
 
+.text_container_class_list{
+    width: var(--max-width-container);
+    margin: var(--spacing-md);
+    background: var(--colour-container-backgroud);
+    box-shadow: var(--container-shadow);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-xl);
+    font-size: var(--size-text-s);
+    text-align: left;
+
+}
+
 h2.container_header {
     text-align: center;
     font-size: var(--size-text-header);
@@ -271,6 +283,26 @@ label, input {
     flex-direction:column;
 }
 
+/* Progress Bar Styles */
+.progress-container {
+    width: 100%;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    margin-top: 15px;
+    display: none; /* Hidden by default */
+}
+.progress-bar {
+    width: 1%;
+    height: 20px;
+    background-color: #215F9A;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 20px;
+    color: white;
+    font-size: 12px;
+    transition: width 0.1s ease;
+}
+
 /* --Results Page Specifics-- */
 
 ol.results {
@@ -308,6 +340,20 @@ ol.documentation {
 
 li.documentation {
     margin-bottom: 0.5vw;
+}
+
+p.class_list_header {
+    font-size: var(--size-text-s);
+    text-align: left;
+    margin-left: 1vw;
+    font-weight: bold;
+}
+
+ol.class_list_ol {
+    font-size: var(--size-text-s);
+    text-align: left;
+    list-style-type: circle;
+    margin-left: 1vw;
 }
 
 /* Collagen marking for documentation page */

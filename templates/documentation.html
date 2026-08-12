@@ -43,24 +43,27 @@ limitations under the License.
     <main>
         <div class="intro">
             <h1 class="page_header">What is Wiki Collagen?</h1>
-            <p class="intro">Wiki Collagen is a free and open source webapp which can analyse collagen domains in given fasta formatted protein sequences.</p>
-        </div>
+            <p class="intro">Wiki Collagen is a free and open source webapp containing two Collagen-focused bioinformatics tools: Collagen Detector and CollagenAI.</p>
         <div class="text_container">
-            <h2 class="container_header">Tool inputs and outputs:</h2>
+            <h2 class="container_header">Collagen Detector methodology, inputs, and outputs:</h2>
             <p class="container_documentation">
-                <br/>Wiki Collagen takes .fasta, .fa, .faa, and .txt files. 
-                The parameters of the tool which can be altered include the minimum length for a collagen domain in triplets (default=10) and the maximum length 
-                of a GNG interruption (default=12, ie. G3-12G).<br/>
-                This tool provides 3 outputs: a flattened fasta .txt file of the collagen domain containing proteins, an html file with the same protein 
-                sequences and highlighted collagen domains and interruptions and finally a .txt file containing statistics about interruption and GXY 
-                prevalence.
+                <br/>Collagen Detector uses regular expressions to identify the repeating GXY amino acid patterns within collagen domains and this doesn't take homology or 
+                probable helix formation into account. Therefore, short repeating collagen domains interspersed with short interruptons are highlighted as such rather than 
+                continual collagen domains. This is not a reflection of the nature of that domain, but rather the seqeunce analysis<br/>
+                <br/>
+                Collagen Detector takes .fasta, .fa, .faa, and .txt files.<br/>
+                The minimum length for a collagen domain in triplets (default=10) and the maximum length of a GNG interruption (default=12, ie. G3-12G) can be adjusted by 
+                the user.<br/>
+                <br/>
+                This tool provides 3 outputs: a flattened fasta .txt file containing the collagenous proteins, an html file with the same protein sequences and highlighted 
+                collagen domains and interruptions and a .txt file containing interruption and GXY prevalence statistics.
             </p>
         </div>
 
         <hr>
 
         <div class="text_container">
-            <h2 class="container_header">Highlighted output explanation:</h2>
+            <h2 class="container_header">Colalgen Detector Highlighted output:</h2>
             <p class="container_documentation">
                 <br/>Non collagen triple helix regions are not highlighted, <span class="COL">collagen domains</span> are highlighted in yellow, <span class="GXG">GXG</span> interruptions are highlighted in green,
                 <span class="GNG">GNG</span> interruptions are highlighted in cyan and <span class="GGG">GGG</span> repeats are coloured red.
@@ -69,24 +72,179 @@ limitations under the License.
         </div>
 
         <hr>
+
+        <div class="text_container">
+            <h2 class="container_header">CollagenAI methodology, inputs, and outputs:</h2>
+            <p class="container_documentation">
+                <br/>CollagenAI is a fine-tuned ESM-2 650M parameter model with a Collagen-specific classification head designed to produce a predicted classification 
+                for Collagen and CLP seqeunces into one of 11 classes.<br/>
+                <br/>
+                Collagen Classes: Fibrillar, Network, FACIT, Multiplexin, MACIT, Misc. Collagen<br/>
+                CLP Classes: Transmembrane CLP, C1q-containing CLP, C-type lectin-containing CLP, Ficolins, Misc. CLP<br/>
+                See list below for more details<br/>
+                <br/>
+                CollagenAI takes .fasta, .fa, .faa, and .txt files.<br/>
+                The minimum confidence (default=80%) can be adjusted by the user.<br/>
+                <br/>
+                This tool outputs a .txt file containing the Headers of each sequence in the input with the predicted class and confidence below.
+            </p>
+        </div>
+
+        <hr>
         
         <div class="text_container">
-            <h2 class="container_header">Collagen domain detection method and disclaimer:</h2>
-            <p class="container_documentation">
-                <br/>The tool analyses sequences based on the amino acid sequence and does not take homology or probable helix formation into 
-                account. Rather it uses regular expressions to identify the repeating GXY amino acid patterns within collagen domains. Therefore 
-                cases such as short repeating collagen domains interspersed with short interruptons are highlighted as such rather than continual 
-                collagen domains due to the sequence based nature of the tool and the ambiguity of such cases.<br/>
-                <br/>
-            </p>
+            <h2 class="container_header">Privacy Notice and Disclaimers:</h2>
+            </br>
+            <p class="disclaimer">Privacy Notice:</p>
+            <p class="container_documentation">User information (eg. email, name, and private information) submitted via the contact form will be deleted within 1 month of submission. No user information is stored and all sequences are deleted after 1 hour. Please contact us if you have any questions.</p>
+            </br>
             <p class="disclaimer">Disclaimers:</p>
             <ol class="documentation">
-                <li class="documentation">Privacy Notice: User information (eg. email, name, and private information) submitted via the contact form will be deleted within 1 month of submission. No user information is stored and all sequences are deleted after 1 hour. Please contact us if you have any questions.</li>
-                <li class="documentation">This tool is not designed to determine if the collagens, collagen-like proteins are helix forming or if they are true collagen domains but rather to recognise the collagen domain GXY pattern in amino acid sequeneces.</li>
-                <li class="documentation">Any gap characters (eg. -, * or ~) used to denote unknown amino acids will be removed from the sequences during processing.</li>
-                <li class="documentation">If fasta headers and sequences are not separated by a newline character (\n) the program will run on the header aswell as the sequence. It will also provide warnings in the output files for non-separated sequences, but will still provide a correct output.</li>
+                <li class="documentation">Collagen Detector is not designed to determine if the collagens, collagen-like proteins are helix forming or if they are true collagen domains but rather to recognise the collagen domain GXY pattern in amino acid sequeneces.</li>
+                <li class="documentation">Any gap characters (eg. -, * or ~) used to denote unknown amino acids will be removed from the sequences during processing by Collagen Detector.</li>
+                <li class="documentation">If FASTA headers and sequences are not separated by a newline character (\n) the Collagen Detector will run on the header aswell as the sequence. It will also provide warnings in the output files for non-separated sequences, but will still provide a correct output.</li>
+                <li class="documentation">Unseparated headers or ambiguous characters will be incorporated into the CollagenAI predictions incorrectly. Please remove any ambiguous characters and use standard FASTA formatting</li>
             </ol>
         </div>
+
+        <hr>
+
+        <div class="text_container_class_list">
+            <h2 class="container_header">CollagenAI class allocations:</h2>
+            <br/>
+            <p class="class_list_header">Fibrillar Collagen:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COL1A1</li>
+                <li class="documentation">COL1A2</li>
+                <li class="documentation">COL2A1</li>
+                <li class="documentation">COL3A1</li>
+                <li class="documentation">COL5A1</li>
+                <li class="documentation">COL5A2</li>
+                <li class="documentation">COL5A3</li>
+                <li class="documentation">COL11A1</li>
+                <li class="documentation">COL24A1</li>
+                <li class="documentation">COL27A1</li>
+                <li class="documentation">COL5A1</li>
+                <li class="documentation">COL11A1</li>
+                <li class="documentation">COL11A2</li>
+                <li class="documentation">COL24A1</li>
+                <li class="documentation">COL27A1</li>
+                <li class="documentation">COLF1</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Network Collagen:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COL4A1</li>
+                <li class="documentation">COL4A2</li>
+                <li class="documentation">COL4A3</li>
+                <li class="documentation">COL4A4</li>
+                <li class="documentation">COL4A5</li>
+                <li class="documentation">COL4A6</li>
+                <li class="documentation">COL8A1</li>
+                <li class="documentation">COL8A2</li>
+                <li class="documentation">COL10A1</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">FACIT Collagen:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COL9A1</li>
+                <li class="documentation">COL9A2</li>
+                <li class="documentation">COL9A3</li>
+                <li class="documentation">COL12A1</li>
+                <li class="documentation">COL14A1</li>
+                <li class="documentation">COL16A1</li>
+                <li class="documentation">COL19A1</li>
+                <li class="documentation">COL20A1</li>
+                <li class="documentation">COL21A1</li>
+                <li class="documentation">COL22A1</li>
+                <li class="documentation">COL10A1</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Multiplexin Collagen:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COL15A1</li>
+                <li class="documentation">COL18A1</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">MACIT Collagen:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COL13A1</li>
+                <li class="documentation">COL17A1</li>
+                <li class="documentation">COL23A1</li>
+                <li class="documentation">COL25A1</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Misc. Collagen:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COL6A1</li>
+                <li class="documentation">COL6A2</li>
+                <li class="documentation">COL6A3</li>
+                <li class="documentation">COL6A4</li>
+                <li class="documentation">COL6A5</li>
+                <li class="documentation">COL6A6</li>
+                <li class="documentation">COL7A1</li>
+                <li class="documentation">COL26A1</li>
+                <li class="documentation">COL28A1</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">C1q-containing CLPs:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">C1QA</li>
+                <li class="documentation">C1QB</li>
+                <li class="documentation">C1QC</li>
+                <li class="documentation">ADIPOQ</li>
+                <li class="documentation">C1QTNF5</li>
+                <li class="documentation">C1QTNF6</li>
+                <li class="documentation">C1QTNF7</li>
+                <li class="documentation">C1QTNF8</li>
+                <li class="documentation">C1QTNF9</li>
+                <li class="documentation">C1QL1</li>
+                <li class="documentation">C1QL2</li>
+                <li class="documentation">C1QL3</li>
+                <li class="documentation">C1QL4</li>
+                <li class="documentation">CD93</li>
+                <li class="documentation">C1QR1</li>
+                <li class="documentation">OTOL1</li>
+                <li class="documentation">EMILIN1</li>
+                <li class="documentation">EMILIN2</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Transmembrane CLPs:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">MARCO</li>
+                <li class="documentation">MSR1</li>
+                <li class="documentation">GLDN</li>
+                <li class="documentation">EDA</li>
+                <li class="documentation">SCARA3</li>
+                <li class="documentation">SCARA5</li>
+                <li class="documentation">COLEC12</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Soluble C-type lectin containing CLPs:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COLEC10</li>
+                <li class="documentation">COLEC11</li>
+                <li class="documentation">SFTPD</li>
+                <li class="documentation">SFTPA1</li>
+                <li class="documentation">SFTPA2</li>
+                <li class="documentation">MBL2</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Ficolins:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">FCN1</li>
+                <li class="documentation">FCN2</li>
+                <li class="documentation">FCN3</li>
+            </ol>
+            <br/>
+            <p class="class_list_header">Misc. CLPs:</p>
+            <ol class="class_list_ol">
+                <li class="documentation">COLQ</li>
+                <li class="documentation">CCBE1</li>
+                <li class="documentation">CTHRC1</li>
+            </ol>
+        </div>
+
     </main>
     <footer>Wiki Collagen by Dr. Jordi Bella and Jacob Parker</footer>
 </body>
