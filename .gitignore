@@ -25,5 +25,10 @@ docker-compose.yml
 Dockerfile
 .dockerignore
 ESM_2_CollagenAI.pt
-__pycache__/*
+**/__pycache__/
+*.pyc
 col_env
+*.py[cod]
+*.so
+bin/
+__pycache__
