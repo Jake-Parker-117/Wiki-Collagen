@@ -297,16 +297,13 @@ def CollagenAI_text():
 
     #Adding current request to queue with all input and output objects
     request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
-    
-    #Adding current request to queue with all input and output objects
-    request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
-    
+
     response = make_response(render_template("loading.html", user_id=request_id))
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
-        
+    
     return response
 
-# Creating a route that can be pinged by js
+# Creating a route that can be pinged by js (AJAX)
 @app.route("/CollagenAI/check_status/<request_id>", methods=["GET"])
 def check_status(request_id):
     with registry_lock:
