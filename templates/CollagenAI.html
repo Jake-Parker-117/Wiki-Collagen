@@ -55,7 +55,8 @@ limitations under the License.
         
         <form action="/CollagenAI/file_input" method="POST" enctype="multipart/form-data" onsubmit="replace_msg_file()">
             <div class="container">           
-                <h2 class="container_header_file_input">File Input</h2>   
+                <h2 class="container_header_file_input">File Input</h2>
+                <p class="text_input">(250kb File Size limit)</p>
                 <label for="fasta_File">Fasta file input:</label>
                 <input type="file" name="fasta_seqs" accept=".fasta,.fa,.faa,.txt" id="fasta_File" required>
                         
@@ -68,16 +69,16 @@ limitations under the License.
                 </div>
             </div>
         </form>
-        
+
         <hr>
         
         <form action="/CollagenAI/text_input" method="POST" onsubmit="replace_msg_text()">
             <div class="container">
                 <h2 class="container_header">Text Input</h2>
-                <p class="text_input">For large fasta files, please use the file input <br/> (450,000 Character limit)</p>
+                <p class="text_input">(200,000 Character limit)</p>
                 
                 <label for="fasta_paste">Fasta sequences paste input:</label>
-                <textarea name="fasta_text" maxlength="450000" title="Fasta sequences input" placeholder="Paste fasta sequences here!" id="fasta_paste" required></textarea>
+                <textarea name="fasta_text" maxlength="200000" title="Fasta sequences input" placeholder="Paste fasta sequences here!" id="fasta_paste" required></textarea>
                 
                 <label for="confidence_threshold2">Minimum confidence threshold (%):</label>
                 <input type="number" name="confidence_threshold" title="Default = 80%" value="80" id="confidence_threshold2" required>
@@ -96,65 +97,19 @@ limitations under the License.
 
     <script>
     function replace_msg_file() {
-        var fileInput = document.getElementById("fasta_File");
-        var file = fileInput.files[0];
-        var file_size_kbs = file.size / 1024;
-        var timer_file = file_size_kbs / 95;
         var x = document.getElementById("button_file");
         x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
-
-        var progressContainer = document.getElementById("progress_file");
-        var progressBar = document.getElementById("bar_file");
-
-        if (progressContainer && progressBar) {
-            progressContainer.style.display = "block";
-
-            // Progress bar animation
-            let width = 1;
-            const intervalId = setInterval(() => {
-                if (width >= 95) { 
-                    clearInterval(intervalId);
-                } else {
-                    width++;
-                    progressBar.style.width = width + "%";
-                    progressBar.innerHTML = width + "%";
-                }
-            }, timer_file); // Speed Control
-        }
     }
     </script>
 
     <script>
     function replace_msg_text() {
-        var textInput = document.getElementById("fasta_paste");
-        var totalCharacters = textInput.value.length;
-        var textInput_size = totalCharacters / 1024;
-        var timer_text = textInput_size / 95;
         var x = document.getElementById("button_text");
         x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
-
-        var progressContainer = document.getElementById("progress_text");
-        var progressBar = document.getElementById("bar_text");
-
-        if (progressContainer && progressBar) {
-            progressContainer.style.display = "block";
-
-            // Progress bar animation
-            let width = 1;
-            const intervalId = setInterval(() => {
-                if (width >= 95) { 
-                    clearInterval(intervalId);
-                } else {
-                    width++;
-                    progressBar.style.width = width + "%";
-                    progressBar.innerHTML = width + "%";
-                }
-            }, timer_text); // Speed Control
-        }
     }
     </script>
 </body>

@@ -242,6 +242,11 @@ def CollagenAI_file():
         raise BadRequest(description="Incorrect input. Please use positive integers as the input for the confidence threshold.")
     except(KeyError): 
         raise BadRequest(description="Please provide input for the minimum confidence threshold.")
+
+    cols_file.seek(0, os.SEEK_END) # moves cursor to end of file to check char length and therefore get the size in bytes
+    file_length = cols_file.tell() # get the size value
+    if file_length > 250*1024:
+        raise BadRequest(description="The uploaded FASTA file was too large. Please try fewer seqeunces")
     
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")

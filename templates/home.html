@@ -100,65 +100,19 @@ limitations under the License.
 
     <script>
     function replace_msg_file() {
-        var fileInput = document.getElementById("fasta_File");
-        var file = fileInput.files[0];
-        var file_size_kbs = file.size / 1024;
-        var timer_file = file_size_kbs / 95;
         var x = document.getElementById("button_file");
         x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
-
-        var progressContainer = document.getElementById("progress_file");
-        var progressBar = document.getElementById("bar_file");
-
-        if (progressContainer && progressBar) {
-            progressContainer.style.display = "block";
-
-            // Progress bar animation
-            let width = 1;
-            const intervalId = setInterval(() => {
-                if (width >= 95) { 
-                    clearInterval(intervalId);
-                } else {
-                    width++;
-                    progressBar.style.width = width + "%";
-                    progressBar.innerHTML = width + "%";
-                }
-            }, timer_file); // Speed Control (milliseconds per update)
-        }
     }
     </script>
 
     <script>
     function replace_msg_text() {
-        var textInput = document.getElementById("fasta_paste");
-        var totalCharacters = textInput.value.length;
-        var textInput_size = totalCharacters / 1024;
-        var timer_text = textInput_size / 95;
         var x = document.getElementById("button_text");
         x.disabled = true;
         x.innerHTML = "Processing...";
         x.style.color = "#215F9A";
-
-        var progressContainer = document.getElementById("progress_text");
-        var progressBar = document.getElementById("bar_text");
-
-        if (progressContainer && progressBar) {
-            progressContainer.style.display = "block";
-
-            // Progress bar animation
-            let width = 1;
-            const intervalId = setInterval(() => {
-                if (width >= 95) { 
-                    clearInterval(intervalId);
-                } else {
-                    width++;
-                    progressBar.style.width = width + "%";
-                    progressBar.innerHTML = width + "%";
-                }
-            }, timer_text); // Speed Control
-        }
     }
     </script>
 
