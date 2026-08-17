@@ -230,6 +230,21 @@ def gpu_worker_loop():
 @app.route("/CollagenAI/file_input", methods=["POST"])
 def CollagenAI_file():
 
+    # Testing for limitations before creating session
+    cols_file = request.files['fasta_seqs']
+    cols_file.seek(0, os.SEEK_END) # moves cursor to end of file to check char length and therefore get the size in bytes
+    file_length = cols_file.tell() # get the size value
+    if file_length > 250*1024:
+        raise BadRequest(description="The uploaded FASTA file was too large. Please try fewer seqeunces")
+
+    #getting numerical input and handling input errors:
+    try:
+        confidence_threshold = int(request.form['confidence_threshold'])
+    except(ValueError): 
+        raise BadRequest(description="Incorrect input. Please use positive integers as the input for the confidence threshold.")
+    except(KeyError): 
+        raise BadRequest(description="Please provide input for the minimum confidence threshold.")
+    
     #creating random user id and creating a working directory within the sessions folder labeled as the request_id (user id)  
     request_id = str(uuid.uuid4())
     workdir = os.path.join("sessions", request_id)
@@ -239,22 +254,8 @@ def CollagenAI_file():
     user_db[request_id] = owner_token
     
     #requesting input file, creating individual file within current workdir within sessions and the assigned random user id
-    cols_file = request.files['fasta_seqs']
-    input_fasta = os.path.join(workdir, "input.fasta")
-    cols_file.save(input_fasta) #save function effienctly saves the file by loading it into the other file in chunks of 16Kb
-    
-    #getting numerical input and handling input errors:
-    try:
-        confidence_threshold = int(request.form['confidence_threshold'])
-    except(ValueError): 
-        raise BadRequest(description="Incorrect input. Please use positive integers as the input for the confidence threshold.")
-    except(KeyError): 
-        raise BadRequest(description="Please provide input for the minimum confidence threshold.")
-
-    cols_file.seek(0, os.SEEK_END) # moves cursor to end of file to check char length and therefore get the size in bytes
-    file_length = cols_file.tell() # get the size value
-    if file_length > 250*1024:
-        raise BadRequest(description="The uploaded FASTA file was too large. Please try fewer seqeunces")
+    input_fasta = os.path.join(workdir, "input.fasta")    
+    cols_file.save(input_fasta) #save the file if its under the limit
     
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")
@@ -275,22 +276,6 @@ def CollagenAI_file():
 # Route for CollagenAI text input
 @app.route("/CollagenAI/text_input", methods=["POST"])
 def CollagenAI_text():
-
-    #creating random user id and creating a working directory within the sessions folder labeled as the request_id (user id)  
-    request_id = str(uuid.uuid4())
-    workdir = os.path.join("sessions", request_id)
-    os.makedirs(workdir)
-    
-    owner_token = secrets.token_hex(32)
-    user_db[request_id] = owner_token
-    
-    #requesting input file, creating individual file within current workdir within sessions and the assigned random user id
-    
-    #requesting input text and validating it
-    cols_text_input = request.form['fasta_text']
-    input_fasta = os.path.join(workdir, "input.fasta")
-    with open(input_fasta, 'w', encoding="utf-8") as f:
-        f.write(cols_text_input)
         
     #getting numerical input and handling input errors:
     try:
@@ -299,6 +284,20 @@ def CollagenAI_text():
         raise BadRequest(description="Incorrect input. Please use positive integers as the input for the confidence threshold.")
     except(KeyError): 
         raise BadRequest(description="Please provide input for the minimum confidence threshold.")
+    
+    #creating random user id and creating a working directory within the sessions folder labeled as the request_id (user id)  
+    request_id = str(uuid.uuid4())
+    workdir = os.path.join("sessions", request_id)
+    os.makedirs(workdir)
+    
+    owner_token = secrets.token_hex(32)
+    user_db[request_id] = owner_token
+    
+    #requesting input text and validating it
+    cols_text_input = request.form['fasta_text']
+    input_fasta = os.path.join(workdir, "input.fasta")
+    with open(input_fasta, 'w', encoding="utf-8") as f:
+        f.write(cols_text_input)
     
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")
