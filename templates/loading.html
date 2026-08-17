@@ -21,6 +21,18 @@ limitations under the License.
     <title>Wiki Collagen</title>
     <link href="{{ url_for('static', filename='styles/style.css')}}" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Wiki_Collagen_Logo.png')}}">
+    <style>
+        .spinner { 
+    border: 16px solid #f3f3f3; 
+    border-top: 16px solid #215F9A; 
+    border-radius: 50%; 
+    width: 120px; 
+    height: 120px; 
+    animation: spin 2s linear infinite; 
+    margin: 0 auto 20px; 
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 
 <body>
@@ -47,7 +59,7 @@ limitations under the License.
             <p class="text_input">Please don't close this window.</p>
 
             </br>
-            
+
             <div class="spinner"></div>
         </div>
         
