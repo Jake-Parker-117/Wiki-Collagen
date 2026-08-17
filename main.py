@@ -20,11 +20,19 @@ from werkzeug.exceptions import HTTPException, BadRequest, NotFound, Forbidden
 from dotenv import load_dotenv
 import os, uuid, time, shutil, secrets, queue, threading, gc
 import torch
+import logging
+import sys
+
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
 
 load_dotenv()
 
 app = Flask(__name__)
-cleanup_files("sessions", 3600)
+cleanup_files("sessions", 60)
 
 @app.route('/')
 @app.route('/home')
@@ -193,7 +201,7 @@ def gpu_worker_loop():
     """
     
     global model, tokenizer, device
-    
+    logging.info("Loading model on startup...")
     window_size = CONFIG['window_size']
     model, tokenizer, device = load_model() # loads model on startup
     
