@@ -100,6 +100,10 @@ limitations under the License.
 
     <script>
     function replace_msg_file() {
+        var fileInput = document.getElementById("fasta_File");
+        var file = fileInput.files[0];
+        var file_size_kbs = file.size / 1024;
+        var timer_file = file_size_kbs / 95;
         var x = document.getElementById("button_file");
         x.disabled = true;
         x.innerHTML = "Processing...";
@@ -121,13 +125,17 @@ limitations under the License.
                     progressBar.style.width = width + "%";
                     progressBar.innerHTML = width + "%";
                 }
-            }, 25); // Speed Control
+            }, timer_file); // Speed Control (milliseconds per update)
         }
     }
     </script>
 
     <script>
     function replace_msg_text() {
+        var textInput = document.getElementById("fasta_paste");
+        var totalCharacters = textInput.value.length;
+        var textInput_size = totalCharacters / 1024;
+        var timer_text = textInput_size / 95;
         var x = document.getElementById("button_text");
         x.disabled = true;
         x.innerHTML = "Processing...";
@@ -149,7 +157,7 @@ limitations under the License.
                     progressBar.style.width = width + "%";
                     progressBar.innerHTML = width + "%";
                 }
-            }, 25); // Speed Control
+            }, timer_text); // Speed Control
         }
     }
     </script>

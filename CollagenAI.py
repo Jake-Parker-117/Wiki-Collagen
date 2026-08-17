@@ -70,14 +70,14 @@ class CollagenFamilyClassifier(nn.Module):
 
 def load_model():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = model = CollagenFamilyClassifier(model_name=CONFIG["model_name"], num_labels=CONFIG["num_labels"], dropout=CONFIG["dropout"])
+    model = CollagenFamilyClassifier(model_name=CONFIG["model_name"], num_labels=CONFIG["num_labels"], dropout=CONFIG["dropout"])
     tokenizer = AutoTokenizer.from_pretrained(CONFIG['model_name'], use_fast=True)
     
     # Restore the best model weights from the saved checkpoint
-    torch.serialization.add_safe_globals([np.dtype, np.core.multiarray.scalar]) # have to tell PyTorch to trust the numpy objects
+    #torch.serialization.add_safe_globals([np.dtype, np.core.multiarray.scalar]) # have to tell PyTorch to trust the numpy objects
     checkpoint = torch.load("ESM_2_CollagenAI.pt", map_location=device, weights_only=False)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-    
+    model = torch.compile(model)
     model.to(device) # load best model in full into gpu
     model.eval() # Put it in evaluation mode
     

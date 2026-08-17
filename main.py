@@ -245,30 +245,18 @@ def CollagenAI_file():
     
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")
+
+    # Implementing Asynchronous waiting pool to stop users from having requests handled simultaneously
+    # But stop timeouts caused by a syncronous system
+    with registry_lock:
+        results_registry[request_id] = {'status': 'processing'}
     
     #Adding current request to queue with all input and output objects
     request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
-    # Creating a timeout counter
-    timeout = 300
-    start_time = time.time()
     
-    # Implementing Synchronous waiting pool to stop users from having requests handled simultaneously
-    while True:
-        with registry_lock:
-            if request_id in results_registry:
-                result = results_registry.pop(request_id)
-                if result["status"] == "success":
-                    break
-                else:
-                    raise BadRequest(description=f"Prediction failed: {result['message']}") # Show error message if prediction failed
-        if time.time() - start_time > timeout: # Timeout the request if its taking too long
-            raise BadRequest(description="The server queue took too long to process this FASTA file. Please try again or a smaller batch.")
-    
-        time.sleep(1.5) # Stops CPU from constantly being used to check if its finished yet
-    
-    response = make_response(redirect(url_for("resultsAI", user_id=request_id)))
+    response = make_response(render_template("loading.html", user_id=request_id))
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
-        
+    
     return response
 
 # Route for CollagenAI file input
@@ -302,30 +290,41 @@ def CollagenAI_text():
     colAI_txt = os.path.join(workdir, "colAI.txt")
     classification_txt = os.path.join(workdir, "Classifications.txt")
     
+    # Implementing Asynchronous waiting pool to stop users from having requests handled simultaneously
+    # But stop timeouts caused by a syncronous system
+    with registry_lock:
+        results_registry[request_id] = {'status': 'processing'}
+
     #Adding current request to queue with all input and output objects
     request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
-    # Creating a timeout counter
-    timeout = 300
-    start_time = time.time()
     
-    # Implementing Synchronous waiting pool to stop users from having requests handled simultaneously
-    while True:
-        with registry_lock:
-            if request_id in results_registry:
-                result = results_registry.pop(request_id)
-                if result["status"] == "success":
-                    break
-                else:
-                    raise BadRequest(description=f"Prediction failed: {result['message']}") # Show error message if prediction failed
-        if time.time() - start_time > timeout: # Timeout the request if its taking too long
-            raise BadRequest(description="The server queue took too long to process this FASTA file. Please try again or a smaller batch.")
-        
-        time.sleep(1.5) # Stops CPU from constantly being used to check if its finished yet
+    #Adding current request to queue with all input and output objects
+    request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
     
-    response = make_response(redirect(url_for("resultsAI", user_id=request_id)))
+    response = make_response(render_template("loading.html", user_id=request_id))
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
         
     return response
+
+# Creating a route that can be pinged by js
+@app.route("/CollagenAI/check_status/<request_id>", methods=["GET"])
+def check_status(request_id):
+    with registry_lock:
+        if request_id not in results_registry:
+            return {"status": "not_found"}, 404
+
+        current_result = results_registry[request_id]
+
+        if current_result["status"] == "success":
+            results_registry.pop(request_id)
+            return {"status": "completed", "redirect_url": url_for("resultsAI", user_id=request_id)}
+
+        elif current_result["status"] == "error":
+            err_msg = current_result("message", "Unknown inference error occured")
+            results_registry.pop(request_id)
+            return {"status": "failed", "message": err_msg}
+
+        return {"status": "processing"}
 
 @app.route("/resultsAI/<user_id>", methods=["GET"])
 def resultsAI(user_id):
@@ -418,7 +417,7 @@ if __name__ == '__main__':
     worker_thread.start()
     
     # Run Flask development server
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    #app.run(debug=True, host='0.0.0.0', port=5000)
 
     # Run Flask production server with Waitress
-    #serve(app, host='0.0.0.0', port=5000, threads=9, max_request_body_size=1073741824)
+    serve(app, host='0.0.0.0', port=5000, threads=9, max_request_body_size=1073741824)

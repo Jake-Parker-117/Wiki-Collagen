@@ -1,0 +1,82 @@
+<!--
+Copyright 2026 Jacob Parker and Jordi Bella
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://apache.org
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki Collagen</title>
+    <link href="{{ url_for('static', filename='styles/style.css')}}" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Wiki_Collagen_Logo.png')}}">
+</head>
+
+<body>
+    <header>
+        <div class="header_brand">
+            <h1 class="wiki">Wiki</h1>
+            <h1 class="collagens">Collagen</h1>
+        </div>
+        <nav>    
+            <ul class="nav_list">
+                <li><a aria-current="page">Collagen Detector</a></li>|
+                <li><a href="{{ url_for('CollagenAI') }}">CollagenAI</a></li>|
+                <li><a href="{{ url_for('documentation') }}">Documentation</a></li>|
+                <li><a href="{{ url_for('citation') }}">Citation</a></li>|
+                <li><a href="{{ url_for('contact') }}">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">           
+            <h2 class="container_header_file_input">Processing Protein Sequences</h2>
+            <p>Your request has been queued. Please don't close this window.</p>
+                
+            <div class="spinner"></div>
+        </div>
+        
+        <script>
+        const taskId = "{{ task_id }}";
+        
+        function checkJobStatus() {
+            fetch(`/CollagenAI/check_status/${taskId}`) //pinging the AJAX route in the background
+                .then(response => response.json()) // waits for response before performing next action
+                .then(data => {
+                    if (data.status === "completed") {
+                        window.location.href = data.redirect_url;
+                    } else if (data.status === "failed") {
+                        document.getElementById("status-text").innerText = "Error: " + data.message;
+                        alert("Inference Failed: " + data.message);
+                    } else {
+                        document.getElementById("status-text").innerText = "Status: Analyzing Sequence Layers...";
+                        setTimeout(checkJobStatus, 2000); // Poll again in 2 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching status:", error);
+                    setTimeout(checkJobStatus, 3000);
+                });
+        }
+        
+        // Initiate the polling loop but wait 1.5 seconds before 1st ping
+        setTimeout(checkJobStatus, 1500);
+    </script>
+
+    </main>
+    <footer>Wiki Collagen by Dr. Jordi Bella and Jacob Parker</footer>
+
+</body>
+</html>
