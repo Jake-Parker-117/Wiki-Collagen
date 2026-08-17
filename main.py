@@ -254,12 +254,12 @@ def CollagenAI_file():
     #Adding current request to queue with all input and output objects
     request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
     
-    response = make_response(render_template("loading.html", user_id=request_id))
+    response = make_response(render_template("loading.html", task_id=request_id))
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
     
     return response
 
-# Route for CollagenAI file input
+# Route for CollagenAI text input
 @app.route("/CollagenAI/text_input", methods=["POST"])
 def CollagenAI_text():
 
@@ -298,7 +298,7 @@ def CollagenAI_text():
     #Adding current request to queue with all input and output objects
     request_queue.put((request_id, input_fasta, colAI_txt, classification_txt, confidence_threshold))
 
-    response = make_response(render_template("loading.html", user_id=request_id))
+    response = make_response(render_template("loading.html", task_id=request_id))
     response.set_cookie('viewer_device_id', owner_token, httponly=True, samesite='Lax', max_age=3600) # implementing cookie storage for browser lock
     
     return response
@@ -317,7 +317,7 @@ def check_status(request_id):
             return {"status": "completed", "redirect_url": url_for("resultsAI", user_id=request_id)}
 
         elif current_result["status"] == "error":
-            err_msg = current_result("message", "Unknown inference error occured")
+            err_msg = current_result.get("message", "Unknown inference error occured")
             results_registry.pop(request_id)
             return {"status": "failed", "message": err_msg}
 
