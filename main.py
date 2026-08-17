@@ -32,7 +32,7 @@ logging.basicConfig(
 load_dotenv()
 
 app = Flask(__name__)
-cleanup_files("sessions", 60)
+cleanup_files("sessions", 3600)
 
 @app.route('/')
 @app.route('/home')
