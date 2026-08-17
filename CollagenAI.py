@@ -88,10 +88,13 @@ def load_model():
     
     # Restore the best model weights from the saved checkpoint
     #torch.serialization.add_safe_globals([np.dtype, np.core.multiarray.scalar]) # have to tell PyTorch to trust the numpy objects
-    checkpoint = torch.load("ESM_2_CollagenAI.pt", map_location=device, weights_only=False)
+    checkpoint = torch.load("ESM_2_CollagenAI.pt", map_location="cpu", weights_only=False)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-    model = torch.compile(model)
-    model.to(device) # load best model in full into gpu
+
+    model = model.half() #downcasting to float 16
+
+    model.to(device) # load best model to gpu
+
     model.eval() # Put it in evaluation mode
     
     return model, tokenizer, device
