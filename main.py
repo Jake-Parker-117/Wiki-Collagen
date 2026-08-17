@@ -308,12 +308,11 @@ def CollagenAI_text():
 def check_status(request_id):
     with registry_lock:
         if request_id not in results_registry:
-            return {"status": "not_found"}, 404
+            return {"status": "processing"}
 
         current_result = results_registry[request_id]
 
         if current_result["status"] == "success":
-            results_registry.pop(request_id)
             return {"status": "completed", "redirect_url": url_for("resultsAI", user_id=request_id)}
 
         elif current_result["status"] == "error":
@@ -344,6 +343,11 @@ def resultsAI(user_id):
             for line in f:
                 if line.startswith(">"):
                     seq_num += 1
+
+        with registry_lock:
+            if user_id in results_registry:
+                results_registry.pop(user_id) #cleaning up user ids from dict here rather than earlier as it crashes the js
+
     except:
             raise NotFound(description="The session you are trying to access has been removed. Please run your query again.")
     
