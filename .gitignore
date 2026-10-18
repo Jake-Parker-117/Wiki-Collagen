@@ -32,3 +32,4 @@ col_env
 *.so
 bin/
 __pycache__
+.vscode

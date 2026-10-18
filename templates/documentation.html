@@ -32,7 +32,7 @@ limitations under the License.
         <nav>    
             <ul class="nav_list">
                 <li><a href="{{ url_for('home') }}">Collagen Detector</a></li>|
-                <li><a href="{{ url_for('CollagenAI') }}">CollagenAI</a></li>|
+                <li><a href="{{ url_for('ESM-Collagen') }}">ESM-Collagen</a></li>|
                 <li><a aria-current="page">Documentation</a></li>|
                 <li><a href="{{ url_for('citation') }}">Citation</a></li>|
                 <li><a href="{{ url_for('contact') }}">Contact</a></li>
@@ -43,7 +43,7 @@ limitations under the License.
     <main>
         <div class="intro">
             <h1 class="page_header">What is Wiki Collagen?</h1>
-            <p class="intro">Wiki Collagen is a free and open source webapp containing two Collagen-focused bioinformatics tools: Collagen Detector and CollagenAI.</p>
+            <p class="intro">Wiki Collagen is a free and open source webapp containing two Collagen-focused bioinformatics tools: Collagen Detector and ESM-Collagen.</p>
         <div class="text_container">
             <h2 class="container_header">Collagen Detector methodology, inputs, and outputs:</h2>
             <p class="container_documentation">
@@ -74,16 +74,16 @@ limitations under the License.
         <hr>
 
         <div class="text_container">
-            <h2 class="container_header">CollagenAI methodology, inputs, and outputs:</h2>
+            <h2 class="container_header">ESM-Collagen methodology, inputs, and outputs:</h2>
             <p class="container_documentation">
-                <br/>CollagenAI is a fine-tuned ESM-2 650M parameter model with a Collagen-specific classification head designed to produce a predicted classification 
+                <br/>ESM-Collagen is a fine-tuned ESM-2 650M parameter model with a Collagen-specific classification head designed to produce a predicted classification 
                 for Collagen and CLP seqeunces into one of 11 classes.<br/>
                 <br/>
                 Collagen Classes: Fibrillar, Network, FACIT, Multiplexin, MACIT, Misc. Collagen<br/>
                 CLP Classes: Transmembrane CLP, C1q-containing CLP, C-type lectin-containing CLP, Ficolins, Misc. CLP<br/>
                 See list below for more details<br/>
                 <br/>
-                CollagenAI takes .fasta, .fa, .faa, and .txt files.<br/>
+                ESM-Collagen takes .fasta, .fa, .faa, and .txt files.<br/>
                 The minimum confidence (default=80%) can be adjusted by the user.<br/>
                 <br/>
                 This tool outputs a .txt file containing the Headers of each sequence in the input with the predicted class and confidence below.
@@ -103,14 +103,14 @@ limitations under the License.
                 <li class="documentation">Collagen Detector is not designed to determine if the collagens, collagen-like proteins are helix forming or if they are true collagen domains but rather to recognise the collagen domain GXY pattern in amino acid sequeneces.</li>
                 <li class="documentation">Any gap characters (eg. -, * or ~) used to denote unknown amino acids will be removed from the sequences during processing by Collagen Detector.</li>
                 <li class="documentation">If FASTA headers and sequences are not separated by a newline character (\n) the Collagen Detector will run on the header aswell as the sequence. It will also provide warnings in the output files for non-separated sequences, but will still provide a correct output.</li>
-                <li class="documentation">Unseparated headers or ambiguous characters will be incorporated into the CollagenAI predictions incorrectly. Please remove any ambiguous characters and use standard FASTA formatting</li>
+                <li class="documentation">Unseparated headers or ambiguous characters will be incorporated into the ESM-Collagen predictions incorrectly. Please remove any ambiguous characters and use standard FASTA formatting</li>
             </ol>
         </div>
 
         <hr>
 
         <div class="text_container_class_list">
-            <h2 class="container_header">CollagenAI class allocations:</h2>
+            <h2 class="container_header">ESM-Collagen class allocations:</h2>
             <br/>
             <p class="class_list_header">Fibrillar Collagen:</p>
             <ol class="class_list_ol">
